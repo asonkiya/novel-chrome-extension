@@ -1,0 +1,26 @@
+{
+  "manifest_version": 3,
+  "name": "Novel Translator Helper",
+  "version": "0.1.0",
+  "description": "Hotkey: extract chapter, create it in backend, translate it.",
+  "permissions": ["activeTab", "storage", "tabs", "scripting"],
+  "host_permissions": ["http://localhost:8787/*"],
+  "background": { "service_worker": "background.js" },
+  "action": { "default_popup": "popup.html", "default_title": "Novel Translator" },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "commands": {
+    "extract_send_translate": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+Y",
+        "mac": "Command+Shift+Y"
+      },
+      "description": "Extract chapter and send to backend (create + translate)"
+    }
+  }
+}

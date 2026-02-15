@@ -1,0 +1,22 @@
+{
+  "typeCheckingMode": "basic",
+
+  "pythonVersion": "3.11",
+
+  "reportMissingImports": false,
+  "reportMissingModuleSource": false,
+
+  "reportUnknownVariableType": false,
+  "reportUnknownMemberType": false,
+  "reportUnknownArgumentType": false,
+  "reportUnknownLambdaType": false,
+  "reportUnknownParameterType": false,
+
+  "reportGeneralTypeIssues": true,
+  "reportOptionalMemberAccess": true,
+
+  "exclude": [
+    "**/__pycache__",
+    "**/alembic"
+  ]
+}

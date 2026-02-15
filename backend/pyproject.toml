@@ -1,0 +1,28 @@
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+exclude = ["alembic"]
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "F",   # pyflakes
+    "I",   # import sorting
+    "UP",  # pyupgrade
+]
+
+ignore = [
+    "E501",  # line too long (we already cap line-length)
+]
+
+[tool.ruff.lint.per-file-ignores]
+"app/models/*.py" = [
+    "F401",  # unused imports (relationships, forward refs)
+]
+"alembic/*" = [
+    "E402",  # module level import not at top
+]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"

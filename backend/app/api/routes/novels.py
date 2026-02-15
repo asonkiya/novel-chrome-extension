@@ -1,0 +1,56 @@
+from __future__ import annotations
+
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session
+
+from app.api.deps import get_db
+from app.schemas import NovelCreate, NovelOut, NovelContextUpdate
+from app.repos import novel as novel_repo
+
+router = APIRouter(prefix="/novels", tags=["novels"])
+
+
+@router.post("", response_model=NovelOut)
+def create_novel(payload: NovelCreate, db: Session = Depends(get_db)):
+    existing = novel_repo.get_novel_by_name(db, payload.name)
+    if existing:
+        raise HTTPException(status_code=409, detail="Novel with this name already exists")
+
+    n = novel_repo.create_novel(
+        db, name=payload.name, source_lang=payload.source_lang, target_lang=payload.target_lang
+    )
+    db.commit()
+    db.refresh(n)
+    return n
+
+
+@router.get("", response_model=list[NovelOut])
+def list_novels(db: Session = Depends(get_db), limit: int = 100, offset: int = 0):
+    return novel_repo.list_novels(db, limit=limit, offset=offset)
+
+
+@router.get("/{novel_id}", response_model=NovelOut)
+def get_novel(novel_id: int, db: Session = Depends(get_db)):
+    n = novel_repo.get_novel(db, novel_id)
+    if not n:
+        raise HTTPException(status_code=404, detail="Novel not found")
+    return n
+
+
+@router.get("/{novel_id}/context")
+def get_context(novel_id: int, db: Session = Depends(get_db)):
+    n = novel_repo.get_novel(db, novel_id)
+    if not n:
+        raise HTTPException(status_code=404, detail="Novel not found")
+    return n.context_json or {}
+
+
+@router.put("/{novel_id}/context")
+def put_context(novel_id: int, payload: NovelContextUpdate, db: Session = Depends(get_db)):
+    n = novel_repo.get_novel(db, novel_id)
+    if not n:
+        raise HTTPException(status_code=404, detail="Novel not found")
+
+    novel_repo.set_context(db, n, payload.context_json)
+    db.commit()
+    return {"ok": True}

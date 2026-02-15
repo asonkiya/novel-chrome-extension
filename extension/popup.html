@@ -1,0 +1,33 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      body { font-family: system-ui, sans-serif; width: 380px; padding: 12px; }
+      label { display:block; margin-top: 10px; font-size: 12px; opacity: 0.85; }
+      input, textarea { width: 100%; box-sizing: border-box; padding: 8px; margin-top: 6px; }
+      textarea { height: 110px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+      button { margin-top: 10px; padding: 10px; width: 100%; }
+      .status { margin-top: 10px; font-size: 12px; white-space: pre-wrap; }
+    </style>
+  </head>
+  <body>
+    <label>Backend URL</label>
+    <input id="backendUrl" placeholder="http://localhost:8787" />
+
+    <label>Novel ID (numeric)</label>
+    <input id="novelId" placeholder="1" />
+
+    <label>Starting Chapter No</label>
+    <input id="chapterNo" placeholder="1" />
+
+    <label>Extractor Config (JSON, per host)</label>
+    <textarea id="customExtractor" placeholder='{"mode":"selector","selector":"#novel_content > div:not(.view-img)","prop":"textContent"}'></textarea>
+
+    <button id="saveAll">Save Settings for This Site</button>
+
+    <div class="status" id="status"></div>
+
+    <script src="popup.js"></script>
+  </body>
+</html>
