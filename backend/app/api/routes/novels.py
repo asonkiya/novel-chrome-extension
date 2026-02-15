@@ -4,8 +4,8 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_db
-from app.schemas import NovelCreate, NovelOut, NovelContextUpdate
 from app.repos import novel as novel_repo
+from app.schemas import NovelContextUpdate, NovelCreate, NovelOut
 
 router = APIRouter(prefix="/novels", tags=["novels"])
 
