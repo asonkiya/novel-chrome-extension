@@ -1,4 +1,4 @@
-Novel Chrome Extension + Backend
+# Novel Chrome Extension + Backend
 
 A personal pipeline for:
   ¥  Extracting chapter text from supported sites via a Chrome extension hotkey
@@ -8,7 +8,7 @@ A personal pipeline for:
 
 
 
-Repo Layout
+## Repo Layout
 
 .
 ??? backend/     # FastAPI + SQLAlchemy + Alembic + Postgres (Dockerized)
@@ -17,7 +17,7 @@ Repo Layout
 
 
 
-Features
+## Features
 
 Backend
   ¥  FastAPI REST API
