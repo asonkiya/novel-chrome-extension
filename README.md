@@ -6,7 +6,7 @@ A personal pipeline for:
   ¥  Translating with OpenAI while maintaining per-novel consistency (Òcontext memoryÓ)
   ¥  Eventually reading/managing chapters from a dedicated frontend
 
-?
+
 
 Repo Layout
 
@@ -15,7 +15,7 @@ Repo Layout
 ??? extension/   # Chrome extension (hotkey -> extract -> POST -> translate)
 
 
-?
+
 
 Features
 
@@ -36,21 +36,20 @@ Extension
   ¥  Per-site extractor configs saved in chrome.storage.local
   ¥  CSP-safe extraction (no eval / new Function)
 
-?
+
 
 Prerequisites
   ¥  Docker + Docker Compose
   ¥  OpenAI API key
   ¥  Chrome/Chromium-based browser (Arc works too)
 
-?
+
 
 Backend: Quick Start
 
 1) Configure Environment
 
 Create backend/.env:
-
 
 ```bash
 
@@ -63,29 +62,36 @@ EOF
 
 ```
 
-?
-
 2) Start Services
 
+```bash
+
 docker compose up --build
+
+```
 
 API will be available at:
 
 http://localhost:8787
 
 
-?
-
 3) Run Migrations
+
+```bash
 
 docker compose exec api alembic -c /app/alembic.ini upgrade head
 
 
-?
+```
 
 4) Health Check
 
+```bash
+
 curl -s http://localhost:8787/health | jq
+
+
+```
 
 
 ?
