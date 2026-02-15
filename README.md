@@ -1,70 +1,89 @@
-# Novel Chrome Extension + Backend
+Novel Chrome Extension + Backend
 
 A personal pipeline for:
-- extracting chapter text from supported sites via a Chrome extension hotkey
-- storing raw + translated chapters in Postgres
-- translating with OpenAI while maintaining per-novel consistency (“context memory”)
-- eventually reading/managing chapters from a dedicated frontend
+  •  Extracting chapter text from supported sites via a Chrome extension hotkey
+  •  Storing raw + translated chapters in Postgres
+  •  Translating with OpenAI while maintaining per-novel consistency (“context memory”)
+  •  Eventually reading/managing chapters from a dedicated frontend
 
-Repo layout:
+?
+
+Repo Layout
 
 .
-??? backend/      # FastAPI + SQLAlchemy + Alembic + Postgres (Dockerized)
-??? extension/    # Chrome extension (hotkey -> extract -> POST -> translate)
+??? backend/     # FastAPI + SQLAlchemy + Alembic + Postgres (Dockerized)
+??? extension/   # Chrome extension (hotkey -> extract -> POST -> translate)
 
----
 
-## Features
+?
 
-### Backend
-- FastAPI REST API
-- Postgres storage (Docker)
-- Alembic migrations
-- Models:
-  - **Novel**: name, langs, `context_json` (translation consistency memory)
-  - **Chapter**: raw + content, status, chapter_no, prev/next pointers (doubly linked list)
-  - **ReadingProgress** + **Bookmark** (for future reader)
+Features
 
-### Extension
-- One hotkey to:
-  1) extract text from the current tab (site-specific extractor config)
-  2) post it as a chapter to the backend
-  3) trigger translation
-- Per-site extractor configs saved in `chrome.storage.local`
-- CSP-safe extraction (no `eval` / `new Function`)
+Backend
+  •  FastAPI REST API
+  •  Postgres storage (Docker)
+  •  Alembic migrations
+  •  Models:
+  •  Novel: name, languages, context_json (translation consistency memory)
+  •  Chapter: raw + content, status, chapter_no, prev/next pointers (doubly linked list)
+  •  ReadingProgress + Bookmark (for future reader)
 
----
+Extension
+  •  One hotkey to:
+  1.  Extract text from the current tab (site-specific extractor config)
+  2.  Post it as a chapter to the backend
+  3.  Trigger translation
+  •  Per-site extractor configs saved in chrome.storage.local
+  •  CSP-safe extraction (no eval / new Function)
 
-## Prereqs
-- Docker + Docker Compose
-- OpenAI API key
-- Chrome/Chromium-based browser (Arc works too)
+?
 
----
+Prerequisites
+  •  Docker + Docker Compose
+  •  OpenAI API key
+  •  Chrome/Chromium-based browser (Arc works too)
 
-## Backend: Quick Start
+?
 
-### 1) Configure environment
-Create `backend/.env`:
+Backend: Quick Start
+
+1) Configure Environment
+
+Create backend/.env:
+
 
 ```bash
+
 cd backend
+
 cat > .env <<'EOF'
 OPENAI_API_KEY=YOUR_KEY_HERE
 DATABASE_URL=postgresql+psycopg2://postgres:postgres@db:5432/app
 EOF
 
-2) Start services
+```
+
+?
+
+2) Start Services
 
 docker compose up --build
 
-API will be available at: http://localhost:8787
+API will be available at:
 
-3) Run migrations
+http://localhost:8787
+
+
+?
+
+3) Run Migrations
 
 docker compose exec api alembic -c /app/alembic.ini upgrade head
 
-4) Health check
+
+?
+
+4) Health Check
 
 curl -s http://localhost:8787/health | jq
 
@@ -73,34 +92,44 @@ curl -s http://localhost:8787/health | jq
 
 Extension: Quick Start
 
-1) Load unpacked
-	1.	Open chrome://extensions
-	2.	Enable Developer mode
-	3.	Click Load unpacked
-	4.	Select the extension/ folder
+1) Load Unpacked
+  1.  Open chrome://extensions
+  2.  Enable Developer mode
+  3.  Click Load unpacked
+  4.  Select the extension/ folder
 
-2) Assign the hotkey
+?
 
-Go to: chrome://extensions/shortcuts
+2) Assign the Hotkey
+
+Go to:
+
+chrome://extensions/shortcuts
+
 Assign the command for the extension (one hotkey).
 
-3) Configure settings on a chapter page
+?
+
+3) Configure Settings on a Chapter Page
 
 Open the extension popup while on the target site and set:
-	•	Backend URL: http://localhost:8787
-	•	Novel ID: the novel you’re posting to
-	•	Chapter No: the number to store
-	•	Extractor Config (JSON): per-host extractor config (examples below)
+  •  Backend URL: http://localhost:8787
+  •  Novel ID: the novel you’re posting to
+  •  Chapter No: the number to store
+  •  Extractor Config (JSON): per-host extractor config (examples below)
 
 Click Save.
 
-4) Press hotkey
+?
+
+4) Press Hotkey
 
 On a chapter page, press the hotkey:
-	•	toast: extracting
-	•	toast: posting
-	•	toast: translating
-	•	toast: done (+ auto-increment chapter no if enabled)
+  •  Toast: extracting
+  •  Toast: posting
+  •  Toast: translating
+  •  Toast: done
+  •  Auto-increment chapter number (if enabled)
 
 ?
 
@@ -110,40 +139,76 @@ These are CSP-safe and editable without changing code.
 
 Booktoki
 
-{"mode":"selector","selector":"#novel_content > div:not(.view-img)","prop":"textContent"}
+```bash
+
+{
+  "mode": "selector",
+  "selector": "#novel_content > div:not(.view-img)",
+  "prop": "textContent"
+}
+
+```
 
 Kakao (Shadow DOM)
 
-{"mode":"shadowSelector","shadowSelector":".DC2CN","prop":"innerText"}
+```bash
 
-Notes:
-	•	mode: "selector" uses normal DOM querySelector
-	•	mode: "shadowSelector" searches shadow roots until it finds the first match
+{
+  "mode": "shadowSelector",
+  "shadowSelector": ".DC2CN",
+  "prop": "innerText"
+}
+
+
+```
+
+Notes
+  •  mode: "selector" uses normal querySelector
+  •  mode: "shadowSelector" searches shadow roots until it finds the first match
 
 ?
 
-Create a novel (example)
+Create a Novel (Example)
+
+```bash
 
 curl -s -X POST http://localhost:8787/novels \
   -H "Content-Type: application/json" \
   -d '{"name":"My Novel","source_lang":"ko","target_lang":"en"}' | jq
 
 
+```
+
 ?
 
-Common checks
+Common Checks
 
-List novels
+List Novels
+
+```bash
 
 curl -s http://localhost:8787/novels | jq
 
-List chapters for a novel
+
+```
+
+List Chapters for a Novel
+
+```bash
 
 curl -s http://localhost:8787/novels/2/chapters | jq
 
-Fetch chapter content
+
+```
+
+Fetch Chapter Content
+
+```bash
 
 curl -s http://localhost:8787/chapters/4 | jq
+
+
+```
 
 
 ?
@@ -152,43 +217,48 @@ Context Memory (Consistency)
 
 Each novel stores context_json, which is used to maintain consistency across translations.
 
-It is not a user-managed glossary. It’s automatic “consistency memory”:
-	•	canon entities (names, orgs, places, items)
-	•	locked renderings (recurring phrases/moves)
-	•	style rules (tone, honorific handling, formatting preferences)
+This is not a user-managed glossary. It is automatic “consistency memory”:
+  •  Canon entities (names, orgs, places, items)
+  •  Locked renderings (recurring phrases/moves)
+  •  Style rules (tone, honorific handling, formatting preferences)
 
 The translation service:
-	•	sends a bounded “slice” of context to reduce token usage
-	•	merges returned context_updates into stored context
-	•	prunes stored context to prevent unbounded growth
+  •  Sends a bounded slice of context to reduce token usage
+  •  Merges returned context_updates into stored context
+  •  Prunes stored context to prevent unbounded growth
 
 ?
 
 Development Notes
 
-If you kill the terminal session
+If You Kill the Terminal Session
 
 Docker containers continue running unless you stop them:
 
+```bash
+
 docker compose down
 
+```
+
 Logs
+
+```bash
 
 docker compose logs -f api
 docker compose logs -f db
 
-
-?
+```
 
 Next Steps
-		Build a small frontend for:
-		managing novels and chapters
-		reading chapters with prev/next navigation
-		bookmarks + reading progress
+
+Build a small frontend for:
+  •  Managing novels and chapters
+  •  Reading chapters with prev/next navigation
+  •  Bookmarks + reading progress
 
 ?
 
 License
 
 Personal/private usage.
-
