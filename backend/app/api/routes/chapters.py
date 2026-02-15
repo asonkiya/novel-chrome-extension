@@ -14,6 +14,7 @@ from app.services.chapters import (
     rebuild_links_from_chapter_no,
 )
 from app.services.translation import translate_chapter
+from app.models.chapter import Chapter
 
 router = APIRouter(tags=["chapters"])
 
@@ -136,9 +137,6 @@ def delete_chapter(
         raise
 
 
-from fastapi import Query
-
-
 @router.delete("/novels/{novel_id}/chapters/{chapter_id}", response_model=ChapterOut)
 def delete_chapter_scoped(
     novel_id: int,
@@ -165,3 +163,27 @@ def delete_chapter_scoped(
     except ValueError as e:
         db.rollback()
         raise HTTPException(status_code=404, detail=str(e))
+
+
+@router.get("/novels/{novel_id}/chapters/full", response_model=list[ChapterOut])
+def list_chapters_full(
+    novel_id: int,
+    db: Session = Depends(get_db),
+    limit: int = 10_000,
+    offset: int = 0,
+    only_translated: bool = Query(
+        False, description="If true, return only chapters that have translated content."
+    ),
+):
+    n = novel_repo.get_novel(db, novel_id)
+    if not n:
+        raise HTTPException(status_code=404, detail="Novel not found")
+
+    q = db.query(chapter_repo.Chapter) if hasattr(chapter_repo, "Chapter") else db.query(Chapter)  # type: ignore[name-defined]
+    q = db.query(Chapter).filter(Chapter.novel_id == novel_id)
+
+    if only_translated:
+        q = q.filter(Chapter.content.isnot(None)).filter(Chapter.content != "")
+
+    chapters = q.order_by(Chapter.chapter_no.asc()).offset(offset).limit(limit).all()
+    return chapters
