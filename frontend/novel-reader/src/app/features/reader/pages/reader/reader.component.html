@@ -12,17 +12,20 @@
     <button class="btn primary" (click)="translate()" [disabled]="chapter?.status === 'translated'">
       Translate
     </button>
+    <button class="btn primary" (click)="onFormat()" [disabled]="!chapter?.id">
+      Format
+    </button>
   </div>
 </div>
 
 <section class="card">
   <div class="card-body">
-    <div *ngIf="loading" class="muted">LoadingÉ</div>
+    <div *ngIf="loading" class="muted">Loading</div>
     <div *ngIf="error" style="color: var(--danger); margin-top:8px;">{{ error }}</div>
 
     <div *ngIf="chapter">
       <h1 class="h1" style="margin-bottom:6px;">
-        Chapter {{ chapter.chapter_no }} <span class="muted" *ngIf="chapter.title">Ñ {{ chapter.title }}</span>
+        Chapter {{ chapter.chapter_no }} <span class="muted" *ngIf="chapter.title">{{ chapter.title }}</span>
       </h1>
 
       <div class="muted" style="font-size: 12px;">

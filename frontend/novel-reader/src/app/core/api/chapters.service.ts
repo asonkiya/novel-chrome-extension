@@ -21,4 +21,8 @@ export class ChaptersService {
   translate(chapterId: number) {
     return this.http.post<ChapterOut>(`${this.base}/chapters/${chapterId}/translate`, {});
   }
+
+  format(chapterId: number) {
+    return this.http.post<ChapterOut>(`${this.base}/chapters/${chapterId}/format`, {});
+  }
 }

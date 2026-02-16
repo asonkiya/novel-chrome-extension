@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_db
+from app.models.chapter import Chapter
 from app.repos import chapter as chapter_repo
 from app.repos import novel as novel_repo
 from app.schemas import ChapterCreate, ChapterListItem, ChapterOut, ChapterUpdate
@@ -13,8 +14,8 @@ from app.services.chapters import (
     insert_chapter_and_link,
     rebuild_links_from_chapter_no,
 )
+from app.services.formatting import format_translated_chapter
 from app.services.translation import translate_chapter
-from app.models.chapter import Chapter
 
 router = APIRouter(tags=["chapters"])
 
@@ -216,3 +217,22 @@ def delete_chapter_by_no(
     except ValueError as e:
         db.rollback()
         raise HTTPException(status_code=404, detail=str(e))
+
+
+@router.post("/chapters/{chapter_id}/format", response_model=ChapterOut)
+def format_one(chapter_id: int, db: Session = Depends(get_db)):
+    ch = chapter_repo.get_chapter(db, chapter_id)
+    if not ch:
+        raise HTTPException(status_code=404, detail="Chapter not found")
+
+    try:
+        updated = format_translated_chapter(db, chapter_id=chapter_id)
+        db.commit()
+        db.refresh(updated)
+        return updated
+    except ValueError as e:
+        db.rollback()
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
