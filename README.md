@@ -18,7 +18,7 @@ A personal pipeline for:
 
 ## Features
 
-Backend
+### Backend
   ¥  FastAPI REST API
   ¥  Postgres storage (Docker)
   ¥  Alembic migrations
@@ -27,7 +27,7 @@ Backend
   ¥  Chapter: raw + content, status, chapter_no, prev/next pointers (doubly linked list)
   ¥  ReadingProgress + Bookmark (for future reader)
 
-Extension
+### Extension
   ¥  One hotkey to:
   1.  Extract text from the current tab (site-specific extractor config)
   2.  Post it as a chapter to the backend
@@ -37,16 +37,16 @@ Extension
 
 
 
-Prerequisites
+### Prerequisites
   ¥  Docker + Docker Compose
   ¥  OpenAI API key
   ¥  Chrome/Chromium-based browser (Arc works too)
 
 
 
-Backend: Quick Start
+## Backend: Quick Start
 
-1) Configure Environment
+### 1) Configure Environment
 
 Create backend/.env:
 
@@ -61,7 +61,7 @@ EOF
 
 ```
 
-2) Start Services
+### 2) Start Services
 
 ```bash
 
@@ -74,7 +74,7 @@ API will be available at:
 http://localhost:8787
 
 
-3) Run Migrations
+### 3) Run Migrations
 
 ```bash
 
@@ -83,7 +83,7 @@ docker compose exec api alembic -c /app/alembic.ini upgrade head
 
 ```
 
-4) Health Check
+### 4) Health Check
 
 ```bash
 
@@ -93,16 +93,16 @@ curl -s http://localhost:8787/health | jq
 ```
 
 
-Extension: Quick Start
+## Extension: Quick Start
 
-1) Load Unpacked
+### 1) Load Unpacked
   1.  Open chrome://extensions
   2.  Enable Developer mode
   3.  Click Load unpacked
   4.  Select the extension/ folder
 
 
-2) Assign the Hotkey
+### 2) Assign the Hotkey
 
 Go to:
 
@@ -111,7 +111,7 @@ chrome://extensions/shortcuts
 Assign the command for the extension (one hotkey).
 
 
-3) Configure Settings on a Chapter Page
+### 3) Configure Settings on a Chapter Page
 
 Open the extension popup while on the target site and set:
   ¥  Backend URL: http://localhost:8787
@@ -122,7 +122,7 @@ Open the extension popup while on the target site and set:
 Click Save.
 
 
-4) Press Hotkey
+### 4) Press Hotkey
 
 On a chapter page, press the hotkey:
   ¥  Toast: extracting
@@ -136,7 +136,7 @@ Extractor Configs (JSON)
 
 These are CSP-safe and editable without changing code.
 
-Booktoki
+#### Booktoki
 
 ```bash
 
@@ -148,7 +148,7 @@ Booktoki
 
 ```
 
-Kakao (Shadow DOM)
+#### Kakao (Shadow DOM)
 
 ```bash
 
@@ -161,7 +161,7 @@ Kakao (Shadow DOM)
 
 ```
 
-Notes
+#### Notes
   ¥  mode: "selector" uses normal querySelector
   ¥  mode: "shadowSelector" searches shadow roots until it finds the first match
 
@@ -178,7 +178,7 @@ curl -s -X POST http://localhost:8787/novels \
 ```
 
 
-Common Checks
+### Common Checks
 
 List Novels
 
@@ -207,7 +207,7 @@ curl -s http://localhost:8787/chapters/4 | jq
 
 ```
 
-Context Memory (Consistency)
+## Context Memory (Consistency)
 
 Each novel stores context_json, which is used to maintain consistency across translations.
 
@@ -222,7 +222,7 @@ The translation service:
   ¥  Prunes stored context to prevent unbounded growth
 
 
-Development Notes
+## Development Notes
 
 If You Kill the Terminal Session
 
@@ -243,7 +243,7 @@ docker compose logs -f db
 
 ```
 
-Next Steps
+## Next Steps
 
 Build a small frontend for:
   ¥  Managing novels and chapters
