@@ -187,3 +187,32 @@ def delete_chapter_scoped(
     except ValueError as e:
         db.rollback()
         raise HTTPException(status_code=404, detail=str(e))
+
+
+@router.delete("/novels/{novel_id}/chapters/by-no/{chapter_no}", response_model=ChapterOut)
+def delete_chapter_by_no(
+    novel_id: int,
+    chapter_no: int,
+    db: Session = Depends(get_db),
+    rebuild: bool = Query(
+        True, description="Rebuild prev/next pointers from chapter_no after delete"
+    ),
+):
+    n = novel_repo.get_novel(db, novel_id)
+    if not n:
+        raise HTTPException(status_code=404, detail="Novel not found")
+
+    ch = chapter_repo.get_chapter_by_no(db, novel_id=novel_id, chapter_no=chapter_no)
+    if not ch:
+        raise HTTPException(status_code=404, detail="Chapter not found")
+
+    try:
+        deleted = delete_chapter_for_novel_and_relink(db, novel_id=novel_id, chapter_id=ch.id)
+        if rebuild:
+            rebuild_links_from_chapter_no(db, novel_id=novel_id)
+        db.commit()
+        db.refresh(deleted)
+        return deleted
+    except ValueError as e:
+        db.rollback()
+        raise HTTPException(status_code=404, detail=str(e))

@@ -2,7 +2,10 @@ from __future__ import annotations
 
 from sqlalchemy.orm import Session
 
+from app.models.bookmark import Bookmark
+from app.models.chapter import Chapter
 from app.models.novel import Novel
+from app.models.reading_progress import ReadingProgress
 
 
 def create_novel(db: Session, name: str, source_lang: str = "ko", target_lang: str = "en") -> Novel:

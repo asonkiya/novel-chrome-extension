@@ -3,6 +3,7 @@ console.log("background loaded");
 
 async function apiFetch(baseUrl, path, method, body) {
 	const url = baseUrl.replace(/\/+$/, "") + path;
+
 	const res = await fetch(url, {
 		method,
 		headers: { "Content-Type": "application/json" },
@@ -11,10 +12,17 @@ async function apiFetch(baseUrl, path, method, body) {
 
 	const text = await res.text();
 	let data;
-	try { data = JSON.parse(text); } catch { data = text; }
+	try {
+		data = JSON.parse(text);
+	} catch {
+		data = text;
+	}
 
 	if (!res.ok) {
-		throw new Error(`HTTP ${res.status}: ${typeof data === "string" ? data : JSON.stringify(data)}`);
+		throw new Error(
+			`HTTP ${res.status} ${url}: ${typeof data === "string" ? data : JSON.stringify(data)
+			}`
+		);
 	}
 	return data;
 }
@@ -27,10 +35,13 @@ async function getActiveHttpTab() {
 	const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
 	if (!tab?.id) throw new Error("No active tab");
 
+	// Arc/Chromium sometimes needs full refetch
 	const fullTab = await chrome.tabs.get(tab.id);
 	const url = fullTab.url || tab.url;
 
-	if (!url || !/^https?:\/\//.test(url)) throw new Error(`Invalid or missing URL: ${url}`);
+	if (!url || !/^https?:\/\//.test(url)) {
+		throw new Error(`Invalid or missing URL: ${url}`);
+	}
 	return { tabId: tab.id, url };
 }
 
@@ -45,14 +56,25 @@ async function getSettingsForHost(host) {
 
 	const backendUrl = stored.backendUrl || "http://localhost:8787";
 	const novelId = Number(stored.novelId || 1);
-	const chapterNo = Number(stored.chapterNo || 1);
+
+	// force numeric
+	const chapterNoRaw = stored.chapterNo ?? 1;
+	const chapterNo = Number(chapterNoRaw);
+
 	const autoIncrement = stored.autoIncrementChapterNo !== false; // default true
 
 	const map = stored.customExtractors || {};
 	const normalized = host.replace(/^www\./, "");
 	const config = map[normalized] || map[host] || null;
 
+	if (!Number.isFinite(novelId)) throw new Error("Invalid novelId in settings");
+	if (!Number.isFinite(chapterNo)) throw new Error("Invalid chapterNo in settings");
+
 	return { backendUrl, novelId, chapterNo, autoIncrement, config, keyUsed: normalized };
+}
+
+async function setChapterNo(nextNo) {
+	await chrome.storage.local.set({ chapterNo: String(nextNo) });
 }
 
 async function runHotkeyFlow() {
@@ -104,27 +126,43 @@ async function runHotkeyFlow() {
 
 		notify(tabId, `Posting chapter ${settings.chapterNo}É`);
 
-		const created = await apiFetch(
-			settings.backendUrl,
-			`/novels/${settings.novelId}/chapters`,
-			"POST",
-			{
-				chapter_no: settings.chapterNo,
-				raw,
-				source_url: url,
-			}
-		);
+		// 1) CREATE (must succeed)
+		let created;
+		try {
+			created = await apiFetch(
+				settings.backendUrl,
+				`/novels/${settings.novelId}/chapters`,
+				"POST",
+				{
+					chapter_no: settings.chapterNo,
+					raw,
+					source_url: url,
+				}
+			);
+		} catch (err) {
+			console.error("Create failed:", err);
+			notify(tabId, `Create failed: ${String(err)}`);
+			return; // do NOT increment
+		}
 
-		notify(tabId, `Translating id=${created.id}É`);
+		notify(tabId, `Saved raw (id=${created.id}).`);
 
-		await apiFetch(settings.backendUrl, `/chapters/${created.id}/translate`, "POST");
-
-		notify(tabId, `Done. Saved chapter ${settings.chapterNo}.`);
-
+		// 2) INCREMENT IMMEDIATELY AFTER CREATE ?
 		if (settings.autoIncrement) {
-			const next = settings.chapterNo + 1;
-			await chrome.storage.local.set({ chapterNo: String(next) });
+			const next = Number(settings.chapterNo) + 1;
+			await setChapterNo(next);
 			notify(tabId, `Next chapter = ${next}`);
+		}
+
+		// 3) TRANSLATE (best effort; don't block) ?
+		notify(tabId, `Translating id=${created.id}É`);
+		try {
+			await apiFetch(settings.backendUrl, `/chapters/${created.id}/translate`, "POST");
+			notify(tabId, `Translated chapter ${settings.chapterNo}.`);
+		} catch (err) {
+			console.error("Translate failed:", err);
+			notify(tabId, `Translate failed (raw saved): ${String(err)}`);
+			// donÕt return; flow is already done
 		}
 	} catch (err) {
 		console.error("Hotkey flow error:", err);
@@ -133,5 +171,10 @@ async function runHotkeyFlow() {
 
 chrome.commands.onCommand.addListener((command) => {
 	console.log("HOTKEY FIRED:", command);
-	if (command === "extract_send_translate") runHotkeyFlow();
+	if (command !== "extract_send_translate") return;
+
+	// Keep SW alive by chaining the promise
+	runHotkeyFlow()
+		.then(() => console.log("Hotkey flow complete"))
+		.catch((err) => console.error("Hotkey flow error:", err));
 });

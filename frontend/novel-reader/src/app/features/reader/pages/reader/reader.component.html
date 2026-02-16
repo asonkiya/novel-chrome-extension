@@ -1,0 +1,37 @@
+<div class="row" style="justify-content: space-between; margin-bottom: 14px;">
+  <div class="row">
+    <button class="btn" routerLink="/novels/{{novelId}}">Novel</button>
+    <button class="btn" (click)="prev()" [disabled]="chapterNo <= 1">Prev</button>
+    <button class="btn" (click)="next()">Next</button>
+  </div>
+
+  <div class="row">
+    <span class="badge" *ngIf="chapter">
+      #{{ chapter.chapter_no }} ¥ {{ chapter.status }}
+    </span>
+    <button class="btn primary" (click)="translate()" [disabled]="chapter?.status === 'translated'">
+      Translate
+    </button>
+  </div>
+</div>
+
+<section class="card">
+  <div class="card-body">
+    <div *ngIf="loading" class="muted">LoadingÉ</div>
+    <div *ngIf="error" style="color: var(--danger); margin-top:8px;">{{ error }}</div>
+
+    <div *ngIf="chapter">
+      <h1 class="h1" style="margin-bottom:6px;">
+        Chapter {{ chapter.chapter_no }} <span class="muted" *ngIf="chapter.title">Ñ {{ chapter.title }}</span>
+      </h1>
+
+      <div class="muted" style="font-size: 12px;">
+        <span *ngIf="chapter.source_url">Source: <a [href]="chapter.source_url" target="_blank">link</a></span>
+      </div>
+
+      <hr class="sep" />
+
+      <pre class="reader">{{ chapter.content || chapter.raw }}</pre>
+    </div>
+  </div>
+</section>

@@ -1,0 +1,69 @@
+<section class="card">
+  <div class="card-header">
+    <div>
+      <h1 class="h1">Novels</h1>
+      <div class="muted">Manage and read your translated chapters.</div>
+    </div>
+
+    <div class="row">
+      <button class="btn" (click)="reload()">Refresh</button>
+      <button class="btn primary" (click)="toggleCreate()">
+        {{ createOpen ? 'Close' : 'New Novel' }}
+      </button>
+    </div>
+  </div>
+
+  <div class="card-body">
+    <div *ngIf="error" style="color: var(--danger); margin-bottom: 10px;">
+      {{ error }}
+    </div>
+
+    <div *ngIf="createOpen" class="card" style="margin-bottom: 14px;">
+      <div class="card-body" style="display:grid; gap:10px;">
+        <div>
+          <div class="muted" style="margin-bottom:6px;">Name</div>
+          <input class="input" [(ngModel)]="form.name" placeholder="e.g. Omniscient Reader" />
+        </div>
+
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+          <div>
+            <div class="muted" style="margin-bottom:6px;">Source</div>
+            <input class="input" [(ngModel)]="form.source_lang" placeholder="ko" />
+          </div>
+          <div>
+            <div class="muted" style="margin-bottom:6px;">Target</div>
+            <input class="input" [(ngModel)]="form.target_lang" placeholder="en" />
+          </div>
+        </div>
+
+        <div class="row" style="justify-content:flex-end;">
+          <button class="btn primary" (click)="create()" [disabled]="loading">Create</button>
+        </div>
+      </div>
+    </div>
+
+    <div *ngIf="loading" class="muted">Loading</div>
+
+    <ul class="list" *ngIf="!loading">
+      <li class="list-item" *ngFor="let n of novels">
+        <div style="min-width:0;">
+          <div style="display:flex; gap:10px; align-items:center;">
+            <div style="font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+              {{ n.name }}
+            </div>
+            <span class="badge">{{ n.source_lang }} to {{ n.target_lang }}</span>
+          </div>
+          <div class="muted" style="font-size:12px; margin-top:4px;">
+            id={{ n.id }}
+          </div>
+        </div>
+
+        <button class="btn primary" (click)="open(n)">Open</button>
+      </li>
+
+      <li *ngIf="novels.length === 0" class="muted" style="padding: 10px 0;">
+        No novels yet. Create one?
+      </li>
+    </ul>
+  </div>
+</section>

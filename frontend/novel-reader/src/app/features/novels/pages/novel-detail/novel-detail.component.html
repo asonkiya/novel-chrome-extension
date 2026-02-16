@@ -1,0 +1,49 @@
+<div class="row" style="justify-content: space-between; margin-bottom: 14px;">
+  <button class="btn" routerLink="/novels">Back</button>
+  <div class="muted" *ngIf="novel">id={{ novel.id }}</div>
+</div>
+
+<section class="card" *ngIf="novel">
+  <div class="card-header">
+    <div>
+      <h1 class="h1">{{ novel.name }}</h1>
+      <div class="muted">{{ novel.source_lang }} ? {{ novel.target_lang }}</div>
+    </div>
+  </div>
+
+  <div class="card-body">
+    <div *ngIf="error" style="color: var(--danger); margin-bottom: 10px;">
+      {{ error }}
+    </div>
+    <div *ngIf="loading" class="muted">LoadingÉ</div>
+
+    <h2 class="h2" style="margin: 4px 0 10px;">Chapters</h2>
+
+    <ul class="list" *ngIf="!loading">
+      <li class="list-item" *ngFor="let ch of chapters">
+        <div style="min-width:0;">
+          <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+            <div style="font-weight:600;">#{{ ch.chapter_no }}</div>
+            <div *ngIf="ch.title" style="opacity:.95;">{{ ch.title }}</div>
+
+            <span
+              class="badge"
+              [ngClass]="{
+                ok: ch.status === 'translated',
+                warn: ch.status !== 'translated'
+              }"
+            >
+              {{ ch.status }}
+            </span>
+          </div>
+        </div>
+
+        <button class="btn primary" (click)="read(ch)">Read</button>
+      </li>
+
+      <li *ngIf="chapters.length === 0" class="muted" style="padding: 10px 0;">
+        No chapters yet Ñ use the extension hotkey to post one.
+      </li>
+    </ul>
+  </div>
+</section>
